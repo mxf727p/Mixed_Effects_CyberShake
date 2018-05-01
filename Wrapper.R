@@ -3,10 +3,13 @@
 ### 03/29/2018   Started by Xiaofeng Meng, only ASK14 and a simple model 
 ###              by Albert Kottke (i.e, KOT) is implemented now.
 
+print("mm")
+
 # Clear the console
 cat("\014")  
 # Clear the workspace
 rm(list=ls())
+
 
 library(ggplot2)
 library(cowplot)
@@ -15,6 +18,8 @@ library(lme4)
 library(minpack.lm)
 library(scales)
 library(tictoc)
+
+print("mm")
 
 
 tic("total")
