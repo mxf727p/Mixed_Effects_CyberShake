@@ -6,4 +6,4 @@ The GMPE is from Villani and Abrahamson, BSSA, 2015:
 _ln_(SA) = b_1 + b_2 * M + b_3 * M^2 + (b_4 + b_5 * M) * log(sqrt(b_R^2 + R_rup^2)) + b_6 * log(Vs_30 / 500)  
 
 The test dataset if NGA_W2 in southern California:   
-![Map of test events](L2L_map_NGA_W2_SC.T03.000.png)
+![Map of test events](L2L_map_NGA_W2_SC.T03.000.png?raw=true)
