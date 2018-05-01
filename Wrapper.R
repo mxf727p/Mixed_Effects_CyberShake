@@ -3,8 +3,6 @@
 ### 03/29/2018   Started by Xiaofeng Meng, only ASK14 and a simple model 
 ###              by Albert Kottke (i.e, KOT) is implemented now.
 
-print("mm")
-
 # Clear the console
 cat("\014")  
 # Clear the workspace
@@ -19,14 +17,12 @@ library(minpack.lm)
 library(scales)
 library(tictoc)
 
-print("mm")
-
 
 tic("total")
 
 ########################
 ### Set up Dataset, Model, Working directories, Plotting flags, Debug flag etc.
-Dataname <- "NGA_W2_SC"     # Options: "NGA_W2", "CyberShake", "NGA_W2_SC", "CyberShake_SC_regression", "CyberShake_SC_full"
+Dataname <- "CyberShake_SC_full"     # Options: "NGA_W2", "CyberShake", "NGA_W2_SC", "CyberShake_SC_regression", "CyberShake_SC_full"
 lon_e = -116.8
 lon_w = -119.2
 lat_s = 33.2
