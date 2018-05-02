@@ -643,18 +643,38 @@ for (i in 1:nrow(coeff)) {
     source(file.path(path_main,"Plot_figures.R"))
     if (GM_model == "VIL") {
 	tic("model")
-	model <- lme(fixed = Resi ~ 1, data = Dataset, random = ~ 1 | eqid, control = lmeControl(opt = "optim"))
-   	model_eps = residuals(model, level = 1)
-	model_L2L <- data.frame(model$coefficients$random$eqid)
-    	colnames(model_L2L) <- c("L2L")
+        model <- lme(fixed = Resi ~ 1, data = Dataset, random = ~ 1 | eqid, control = lmeControl(opt = "optim"))
+        model_eps = residuals(model, level = 1)
+        model_L2L <- data.frame(model$coefficients$random$eqid)
+        colnames(model_L2L) <- c("L2L")
+        Dataset3 <- data.frame(Dataset$stid,model_eps)
+        colnames(Dataset3) <- c("stid","eps")
+    
+        model <- lme(fixed = eps ~ 1, data = Dataset3, method="REML", random = ~ 1 | stid, control = lmeControl(opt = "optim"))
+        model_eps2 = residuals(model, level = 1)
+        model_S2S <- data.frame(model$coefficients$random$stid)
+        colnames(model_S2S) <- c("S2S")
+        Dataset3 <- data.frame(Dataset$pathid,model_eps2)
+        colnames(Dataset3) <- c("pathid","eps")
+    
+        model <- lme(fixed = eps ~ 1, data = Dataset3, method="REML", random = ~ 1 | pathid, control = lmeControl(opt = "optim"))
+        model_eps3 = residuals(model, level = 1)
+        model_P2P <- data.frame(model$coefficients$random$pathid)
+        colnames(model_P2P) <- c("P2P")
     	toc()
 
 	tic("model4")
-        lnSa.deriv = deriv(~ b1 + b2 * mag + b3 * mag ^ 2 + (b4 + b5 * mag) * log(sqrt(4^2 + rrup^2)) + b6 * log(vs30/500), 
+	if (0) {
+        	lnSa.deriv = deriv(~ b1 + b2 * mag + b3 * mag ^ 2 + (b4 + b5 * mag) * log(sqrt(4^2 + rrup^2)) + b6 * log(vs30/500), 
                            namevec=c('b1','b2','b3','b4','b5','b6'), 
                            function.arg = c('mag','rrup','vs30','b1','b2','b3','b4','b5','b6'))
-        model4 <- nlmer(obs ~ lnSa.deriv(mag, rrup, vs30, b1, b2, b3, b4, b5, b6) ~ (b1|eqid) + (b1|stid) + (b1|pathid),
+        	model4 <- nlmer(obs ~ lnSa.deriv(mag, rrup, vs30, b1, b2, b3, b4, b5, b6) ~ (b1|eqid) + (b1|stid) + (b1|pathid),
                         data=Dataset, start=c(b1=-6, b2=3, b3=0.0, b4=-2.6, b5=0.3, b6=-1.29))
+	}
+
+	if (1) {
+		model4 <- lmer(Resi ~ 1 + (1|eqid) + (1|stid) + (1|pathid), data=Dataset)	
+	}
         toc()
     }
     model4_L2L <- ranef(model4)$eqid
@@ -668,6 +688,25 @@ for (i in 1:nrow(coeff)) {
 
     tic("Residual P2P")
     x_axis_range <- c(-1.5, 1.5)
+    ymax <- max(hist(model_L2L$L2L, breaks = seq(from=-15,to=15,by=0.1), plot=FALSE)$counts)
+    p1_1 <- ggplot(model_L2L, aes(x=L2L)) + geom_histogram(color="black", fill="white", binwidth = 0.1) + scale_x_continuous(lim=x_axis_range) +
+            stat_function(fun = function(x) dnorm(x, mean = 0, sd = sqrt(var(model_L2L$L2L))) * nrow(model_L2L) * 0.1, color = "red", size = 1) +
+            annotate("text", x=-1, y=ymax*0.1, label = paste0("phi[L2L] ==",formatC(sqrt(var(model_L2L$L2L)),digits=2,format="f",flag="0")), color="red", parse=TRUE) +
+            annotate("text", x=0, y=ymax*1.0, label = "lme(Residual ~ 1 + 1 | EQID)", color="blue", size=3.5) +
+            annotate("text", x=0, y=ymax*0.9, label = "paste(\"lme(\",delta,W[es],\" ~ 1 + 1 | STID)\")", color="blue", parse=TRUE, size=3.5) +
+            annotate("text", x=0, y=ymax*0.8, label = "paste(\"lme(\",delta,WS[es],\" ~ 1 + 1 | PATHID)\")", color="blue", parse=TRUE, size=3.5)
+
+    ymax <- max(hist(model_S2S$S2S, breaks = seq(from=-15,to=15,by=0.1), plot=FALSE)$counts)
+    p1_2 <- ggplot(model_S2S, aes(x=S2S)) + geom_histogram(color="black", fill="white", binwidth = 0.1) + scale_x_continuous(lim=x_axis_range) +
+            stat_function(fun = function(x) dnorm(x, mean = 0, sd = sqrt(var(model_S2S$S2S))) * nrow(model_S2S) * 0.1, color = "red", size = 1) +
+            annotate("text", x=-1, y=ymax*0.1, label = paste0("phi[S2S] ==",formatC(sqrt(var(model_S2S$S2S)),digits=2,format="f",flag="0")), color="red", parse=TRUE)
+
+    ymax <- max(hist(model_P2P$P2P, breaks = seq(from=-15,to=15,by=0.1), plot=FALSE)$counts)
+    p1_3 <- ggplot(model_P2P, aes(x=P2P)) + geom_histogram(color="black", fill="white", binwidth = 0.1) + scale_x_continuous(lim=x_axis_range) +
+            stat_function(fun = function(x) dnorm(x, mean = 0, sd = sqrt(var(model_P2P$P2P))) * nrow(model_P2P) * 0.1, color = "red", size = 1) +
+            annotate("text", x=-1, y=ymax*0.1, label = paste0("phi[P2P] ==",formatC(sqrt(var(model_P2P$P2P)),digits=2,format="f",flag="0")), color="red", parse=TRUE)
+
+
     ymax <- max(hist(model4_L2L$L2L, breaks = seq(from=-15,to=15,by=0.1), plot=FALSE)$counts)
     p4_1 <- ggplot(model4_L2L, aes(x=L2L)) + geom_histogram(color="black", fill="white", binwidth = 0.1) + scale_x_continuous(lim=x_axis_range) +
       stat_function(fun = function(x) dnorm(x, mean = 0, sd = sqrt(var(model4_L2L$L2L))) * nrow(model4_L2L) * 0.1, color = "red", size = 1) +
@@ -682,9 +721,9 @@ for (i in 1:nrow(coeff)) {
     p4_3 <- ggplot(model4_P2P, aes(x=P2P)) + geom_histogram(color="black", fill="white", binwidth = 0.1) + scale_x_continuous(lim=x_axis_range) +
       stat_function(fun = function(x) dnorm(x, mean = 0, sd = sqrt(var(model4_P2P$P2P))) * nrow(model4_P2P) * 0.1, color = "red", size = 1) +
       annotate("text", x=-1, y=ymax*0.1, label = paste0("phi[P2P] ==",formatC(sqrt(var(model4_P2P$P2P)),digits=2,format="f",flag="0")), color="red", parse=TRUE)
-    g <- plot_grid(p4_1,p4_2,p4_3, labels = "AUTO", nrow = 3, align = 'v')
+    g <- plot_grid(p1_1,p4_1,p1_2,p4_2,p1_3,p4_3, labels = "AUTO", nrow = 3, align = 'v')
     ggsave(file=paste(path_figures,"/Residual_P2P_",Dataname,".T", formatC(Period,digits=3,width=6,format="f",flag="0"),".png",sep=""),
-               g,height=9, width=3, units='in', dpi=600)    
+               g,height=9, width=6, units='in', dpi=600)    
     toc()
 
 
