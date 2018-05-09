@@ -37,7 +37,7 @@ L2L_flag <- 0
 S2S_flag <- 0
 P2P_flag <- 0
 output_flag <- 0
-plot_residual <- 0
+plot_residual <- 1
 plot_response <- 0
 debug_flag <- 0
 ### End set up
@@ -87,17 +87,6 @@ toc()
 ### Read equations for the model
 source(file.path(path_model,GM_model,"Equations.R"))
 ### End read equations
-#########################
-
-
-#########################
-### Plot map of events
-  states <- map_data("state")
-  ca_df <- subset(states, region == "california")
-  map <- ggplot(data = ca_df, mapping = aes(x = long, y = lat)) + coord_fixed(xlim = c(lon_w, lon_e),  ylim = c(lat_s, lat_n), ratio=1.3) + geom_polygon(color = "black", fill = "gray")
-  map <- map + geom_point(data=Dataset,aes(x=lon,y=lat,size=mag), shape=21)
-  ggsave(file=paste(path_figures,"/Map_",Dataname,".png",sep=""),map,height=6, width=6, units='in', dpi=600)	
-### End plot map
 #########################
 
 
@@ -675,17 +664,15 @@ for (i in 1:nrow(coeff)) {
     	toc()
 
 	tic("model4")
-	if (0) {
-        	lnSa.deriv = deriv(~ b1 + b2 * mag + b3 * mag ^ 2 + (b4 + b5 * mag) * log(sqrt(4^2 + rrup^2)) + b6 * log(vs30/500), 
-                           namevec=c('b1','b2','b3','b4','b5','b6'), 
-                           function.arg = c('mag','rrup','vs30','b1','b2','b3','b4','b5','b6'))
-        	model4 <- nlmer(obs ~ lnSa.deriv(mag, rrup, vs30, b1, b2, b3, b4, b5, b6) ~ (b1|eqid) + (b1|stid) + (b1|pathid),
-                        data=Dataset, start=c(b1=-6, b2=3, b3=0.0, b4=-2.6, b5=0.3, b6=-1.29))
-	}
+#	if (0) {
+#        	lnSa.deriv = deriv(~ b1 + b2 * mag + b3 * mag ^ 2 + (b4 + b5 * mag) * log(sqrt(4^2 + rrup^2)) + b6 * log(vs30/500), 
+#                           namevec=c('b1','b2','b3','b4','b5','b6'), 
+#                           function.arg = c('mag','rrup','vs30','b1','b2','b3','b4','b5','b6'))
+#        	model4 <- nlmer(obs ~ lnSa.deriv(mag, rrup, vs30, b1, b2, b3, b4, b5, b6) ~ (b1|eqid) + (b1|stid) + (b1|pathid),
+#                        data=Dataset, start=c(b1=-6, b2=3, b3=0.0, b4=-2.6, b5=0.3, b6=-1.29))
+#	}
 
-	if (1) {
-		model4 <- lmer(Resi ~ 1 + (1|eqid) + (1|stid) + (1|pathid), data=Dataset)	
-	}
+	model4 <- lmer(Resi ~ 1 + (1|eqid) + (1|stid) + (1|pathid), data=Dataset)	
         toc()
     }
     model4_L2L <- ranef(model4)$eqid
